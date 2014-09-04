@@ -1,0 +1,8 @@
+/build/*
+node_modules
+*.node
+*.sh
+*.swp
+.lock*
+.idea
+tests-settings-custom.*

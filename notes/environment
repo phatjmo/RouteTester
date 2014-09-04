@@ -1,0 +1,6 @@
+OCI_HOME=/usr/lib/oracle/12.1/client64
+OCI_LIB_DIR=/usr/lib/oracle/12.1/client64/lib
+OCI_INCLUDE_DIR=/usr/lib/oracle/12.1/client64/sdk/include
+OCI_VERSION=12
+NLS_LANG=AMERICAN_AMERICA.UTF8
+

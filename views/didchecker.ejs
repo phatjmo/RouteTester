@@ -1,0 +1,50 @@
+<h1><%= title %></h1>
+<p>Welcome to <%= title %></p>
+<form>
+	<fieldset style="width:45%;height:615px;float:left;">
+		<legend>DID Selection</legend>
+		<ul class="form">
+			<li><label>Choose Hub:</label><select id="hub"></select></li>
+			<li>
+				<button id="sendCalls" type="button">Send Calls</button>
+				<button id="didList" type="button">List DIDs</button>
+				<button id="abortCalls" type="button">Abort Test (Hangup Calls)</button>
+				<button id="listChannels" type="button">List Channels</button>
+			</li>
+		</ul>
+		<ul class="form">
+			<li><label>Manual DID:</label><input id="manDID"></li>
+			<li><button id="callDID" type="button">Call Me</button></li>
+			<li><span id="msgmanDID"></span></li>
+		</ul>
+
+	</fieldset>
+	<fieldset style="width:45%;height:615px;float:left;">
+	<legend>Channel Display</legend>
+		<div id="dispChannels" style="width:100%;height:600px;float:left;overflow:scroll;">
+		
+
+
+		</div>
+	</fieldset>
+</form>
+
+<!-- Index page logic -->
+<script type="text/javascript">
+	//Index Page Logic
+	$('document').ready(function(){
+		$( "button" ).button();
+		$( '#sendCalls' ).click(function(){sendCalls();});
+		$( '#callDID' ).click(function(){makeCall($("#manDID").val());});
+		$( '#didList' ).click(function(){didList($( "#hub").val());});
+		$( '#abortCalls' ).click(function(){abortCalls();});
+		$( '#listChannels' ).click(function(){listChannels();});
+		popLists("hub");
+		//alert("page loaded");
+		
+
+
+	});
+
+</script>
+
