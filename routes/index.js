@@ -3,27 +3,47 @@
  * GET home page.
  */
 var telephony = require('../telephony');
+var database = require('../database.json');
+var params = require('../params.json');
+//var pauseable = require('pauseable')
+//  , EventEmitter = require('events').EventEmitter;
+//var call = [];
+//var ee = new EventEmitter();
+
+var interval = 1000/params.cps
+console.log(interval);
+console.log(params);
+var call = "inactive";
+//var sleep = require('teddybear');
+//console.log(JSON.parse(database));
+//console.log(database);
 var t = telephony.Shift8;
-var mysql      = require('mysql');
-/* var connection = mysql.createConnection({
-  host     : 'localhost',
-  user     : 'leadmill',
-  password : 'leadmill'
-}); */
-var connection = mysql.createConnection({
-  host     : 'localhost',
-  user     : 'didchecker',
-  password : 'didchecker'
-});
 
-var oracle = require('oracle');
+if (database.mysql) {
+  var mysql = require('mysql');
+  /* var connection = mysql.createConnection({
+    host     : 'localhost',
+    user     : 'leadmill',
+    password : 'leadmill'
+  }); */
 
-var connString = "(DESCRIPTION =(ADDRESS_LIST =(ADDRESS = (PROTOCOL = TCP)(HOST = lva1doradev90.cvdsxiegyd4k.us-east-1.rds.amazonaws.com)(PORT = 1521)))(CONNECT_DATA =(SID = LEGACYDB)))";
-var connectData = {
-    "tns": connString,
-    "user": "apricot",
-    "password": "apri-cot"
-}; 
+  var connection = mysql.createConnection({
+    host     : database.mysql.host,
+    user     : database.mysql.user,
+    password : database.mysql.password,
+    database : database.mysql.database
+  });
+}
+if (database.oracle) {
+
+  var oracle = require('oracle');
+
+  //var connString = "(DESCRIPTION =(ADDRESS_LIST =(ADDRESS = (PROTOCOL = TCP)(HOST = lva1doradev90.cvdsxiegyd4k.us-east-1.rds.amazonaws.com)(PORT = 1521)))(CONNECT_DATA =(SID = LEGACYDB)))";
+  var connectData = {
+      "tns": database.oracle.tns,
+      "user": database.oracle.user,
+      "password": database.oracle.password
+  }; 
 
 
 /* var connectData = {
@@ -34,17 +54,17 @@ var connectData = {
     password: "apri-cot"
 }; */ 
 
-oracle.connect(connectData, function(err, connection) {
-    if (err) { console.log("Error connecting to db:", err); return; }
-    connection.execute("SELECT systimestamp FROM dual", [], function(err, results) {
-        if (err) { console.log("Error executing query:", err); return; }
+  oracle.connect(connectData, function(err, connection) {
+      if (err) { console.log("Error connecting to db:", err); return; }
+      connection.execute("SELECT systimestamp FROM dual", [], function(err, results) {
+          if (err) { console.log("Error executing query:", err); return; }
 
-        console.log(results);
-        connection.close(); // call only when query is finished executing
-    });
+          console.log(results);
+          connection.close(); // call only when query is finished executing
+      });
 
-});
-
+  });
+}
 /*oracle.connect(connectData, function(err, connection) {
     if (err) { console.log("Error connecting to db:", err); return; }
     hubQuery = 'select h.HUB_NAME as hub, count(*) as dids from did d inner join hub h on h.hub_id=d.hub_id group by h.hub_name';
@@ -56,7 +76,11 @@ oracle.connect(connectData, function(err, connection) {
     });
     
 });*/
+console.log("Timeout Test Begins!");
+setTimeout(function(){
+  console.log("Timeout test: " + (5*interval)+ "ms delay!");
 
+},5*interval);
 
 function query(query){
 
@@ -75,6 +99,14 @@ function query(query){
 }
 
 function genCalls(element, index, array) {
+    var phone = "";
+    var dialString = "";
+    var ani = "";
+    var rangeTo = "";
+    var rangeFrom = "";
+    var rangeCount = 0;
+    var delay = 0;
+
     console.log("a[" + index + "] = " + element);
     console.log(element.rangefrom);
     console.log(element.rangeto);
@@ -82,49 +114,79 @@ function genCalls(element, index, array) {
     rangeTo = element.rangeto;
     rangeFrom = element.rangefrom;
     rangeCount = (rangeTo-rangeFrom)+1;
-    console.log("Processing " +ac+ "" + rangeFrom + " to " +ac+ " " + rangeTo + " for a total of " + rangeCount + " calls.");
+    console.log("Processing " +ac+ " " + rangeFrom + " to " +ac+ " " + rangeTo + " for a total of " + rangeCount + " calls. Dialing at " + params.cps + " calls per second.");
     for (i=0; i < rangeCount; i++) {
       phone = rangeFrom + i;
       dialString = ac.toString() + phone.toString();
+      ani = '04'+phone.toString();
       //console.log(dialString + ": processing call " + (i+1));
-      result = makeCall("dialString");
-      console.log(dialString + ": processing call " + (i+1) + ": " + result);
+      //sleep(500);
+      delay = i*interval;
+      console.log(dialString + ": processing call " + (i+1) + " timeout: " + delay + ", i: " + i +", interval: " + interval);
+/*      setTimeout(function(){
+        makeCall(dialString, ani);
+      }
+      ,delay);*/
+      console.log("makeCall('"+dialString+"','"+ani+"')");
+      setTimeout(makeCall, delay, dialString, ani);
+      
     }
 
 }
 
-function makeCall(dialstring){
-  channel = dialstring;
-  context = "outdial";
-  exten = "1111111111@handledial";
-  callerID = "0255544422";
-      console.log("Placing Call to " + dialstring);
-  t.originate(channel, context, exten, 1, 2000, callerID, 1, function(error, response){  
-    if(error) {
+function makeCall(did, ani){
+  call = "active";
+  did = did;
+  console.log("Calling " + did + " from " + ani);
+  channel = "local/"+did;
+  context = "dummy-exten";
+  exten =  "100";
+  priority = 1;
+  if(ani){
+    callerID = '"Autodialer"<'+ani+'>';
+  } else {
+    callerID = '"Autodialer"<6026067001>';  
+  }
+  
+  async = 1;
+  application = null;
+  data=null;
+  timeout=null;
+  variable = null;
+  account=null;
+  codecs=null;
+
+  t.originate(channel, context, exten, priority, application, data, timeout, callerID, variable, account, async, codecs, function(error, response){ 
+    if(error){ 
       console.log(error);
-      return error;
+      //callback(error);
     } else {
-      console.log(response);
-      return response;
+      //console.log(response);
+      //console.log(dialString + ": processing call: " + response.response +" - " + response.message);
+      //callback(response);
     }
-  });    
+    
+   });
+  //console.log("GET:makeCall");
 
 }
 
 t.on('event', function( event ) {
         //console.log("Event");
         if (event.event=="Dial" && event.subevent=="Begin"){
-          console.log(event);
+          //console.log(event);
           ani = event.calleridnum;
           did = event.dialstring.split("/")[1];
           uniqueid = event.uniqueid;
           destuniqueid = event.destuniqueid;
           channel = event.destination;
-          theQuery = "INSERT INTO didchecker.calldetail (uniqueid, did, ani, callstart, astChannel) VALUES ('" + destuniqueid + "','" + did + "','" + ani + "',now(),'" + channel + "')";
-          console.log(theQuery);
+          theQuery = "INSERT INTO calldetail (uniqueid, did, ani, callstart, astChannel) VALUES ('" + destuniqueid + "','" + did + "','" + ani + "',now(),'" + channel + "')";
+          //console.log(theQuery);
           connection.query(theQuery,function(err, res){
             if(err){console.log(err);}
-            if(res){console.log(res);}
+            if(res){
+              //console.log(res);
+            }
           })
         
         }
@@ -145,10 +207,11 @@ t.on('event', function( event ) {
           
         }
          if(event.event=="Trying"||event.event=="Progressing"){
-          console.log(event);
+          //console.log(event);
           if(event.event=="Progressing" && event.userdata!='(null)'){
             console.log("Dropping before answer...");
             t.hangup(event.channelname);
+            call="inactive";
           }
         }
         
@@ -162,6 +225,11 @@ exports.index = function(req, res){
 exports.didchecker = function(req, res){
   res.render('didchecker', { title: 'DID Checker' })
   console.log("GET:DIDCHECKER");
+};
+
+exports.leadMill = function(req, res){
+  res.render('index', { title: 'Asterisk Dialer' })
+  console.log("GET:LEADMILL");
 };
 
 exports.test = function(req, res){
@@ -209,10 +277,10 @@ exports.callDID = function(req, res) {
 
   t.originate(channel, context, exten, priority, application, data, timeout, callerID, variable, account, async, codecs, function(error, response){ 
     if(error){ 
-      console.log(error);
+      //console.log(error);
       res.send(error);
     } else {
-      console.log(response);
+      //console.log(response);
       res.send(response);
     }
     
@@ -391,7 +459,7 @@ exports.doRange = function(req, res){
   
   //response = [{"item": "07","count": 30000}]; 
   whereClause = "WHERE state = '" + req.query.state + "' AND cca = '" + req.query.city + "' AND fullrange = '" + req.query.range + "'";
-  theQuery = "SELECT ac, rangefrom, rangeto FROM LeadMill.areas " + whereClause;
+  theQuery = "SELECT ac, rangefrom, rangeto FROM areas " + whereClause;
   connection.query(theQuery, function(err, rows, fields){
     console.log(rows);
     if(rows){
@@ -415,14 +483,16 @@ exports.procCall = function(vars){
       SIPcause = vars.agi_arg_1;
       SIPcode = vars.agi_arg_2;
       SIPmsg = vars.agi_arg_3;
-      console.log("SIP Cause: " + SIPcause);
-      console.log("SIP Code: " + SIPcode);
-      console.log("SIP Message: " + SIPmsg);
-      theQuery ="UPDATE didchecker.calldetail set sipcause='"+SIPcause+"', sipcode='"+SIPcode+"', sipmsg='"+SIPmsg+"', callend=now() WHERE uniqueid='"+uniqueid+"'";
-      console.log(theQuery);
+      //console.log("SIP Cause: " + SIPcause);
+      //console.log("SIP Code: " + SIPcode);
+      //console.log("SIP Message: " + SIPmsg);
+      theQuery ="UPDATE calldetail set sipcause='"+SIPcause+"', sipcode='"+SIPcode+"', sipmsg='"+SIPmsg+"', callend=now() WHERE uniqueid='"+uniqueid+"'";
+      //console.log(theQuery);
       connection.query(theQuery,function(err, res){
         if(err){console.log(err);}
-        if(res){console.log(res);}
+        if(res){
+          //console.log(res);
+        }
     })
       
     }
@@ -430,7 +500,7 @@ exports.procCall = function(vars){
       console.log("Call hit LeaseHawk system, HOORAY!!!");
       ani = vars.agi_callerid;
       did = vars.agi_extension;
-      theQuery ="UPDATE didchecker.calldetail set received=true WHERE did='"+did+"' AND ani='"+ani+"'";
+      theQuery ="UPDATE calldetail set received=true WHERE did='"+did+"' AND ani='"+ani+"'";
       console.log(theQuery);
       connection.query(theQuery,function(err, res){
         if(err){console.log(err);}

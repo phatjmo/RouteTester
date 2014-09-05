@@ -1,7 +1,7 @@
 <h1><%= title %></h1>
 <p>Welcome to <%= title %></p>
 <form>
-	<fieldset style="width:45%;height:615px;float:left;">
+	<fieldset style="width:25%;height:615px;float:left;">
 		<legend>DID Selection</legend>
 		<ul class="form">
 			<li><label>Choose Hub:</label><select id="hub"></select></li>
@@ -19,7 +19,29 @@
 		</ul>
 
 	</fieldset>
-	<fieldset style="width:45%;height:615px;float:left;">
+	<fieldset style="width:25%;height:615px;float:left;">
+	<legend>DID Display</legend>
+		<div id="dispDIDs" style="width:100%;height:600px;float:left;overflow:scroll;">
+			<table id="didTable">
+				<thead>
+					<th>col 1</th>
+					<th>col 2</th>
+					<th>col 3</th>
+					<th>col 4</th>
+				</thead>
+				<tbody>
+<!-- 					<td>data 1</td>
+					<td>data 2</td>
+					<td>data 3</td>
+					<td>data 4</td> -->
+				</tbody>
+				<tfoot></tfoot>
+			</table>
+
+
+		</div>
+	</fieldset>
+	<fieldset style="width:25%;height:615px;float:left;">
 	<legend>Channel Display</legend>
 		<div id="dispChannels" style="width:100%;height:600px;float:left;overflow:scroll;">
 		
@@ -41,6 +63,25 @@
 		$( '#listChannels' ).click(function(){listChannels();});
 		popLists("hub");
 		//alert("page loaded");
+		didData = [
+		    {
+		        "name":       "Tiger Nixon",
+		        "position":   "System Architect",
+		        "salary":     "$3,120",
+		        "start_date": "2011/04/25",
+		        "office":     "Edinburgh",
+		        "extn":       "5421"
+		    },
+		    {
+		        "name":       "Garrett Winters",
+		        "position":   "Director",
+		        "salary":     "$5,300",
+		        "start_date": "2011/07/25",
+		        "office":     "Edinburgh",
+		        "extn":       "8422"
+		    	}
+			]	
+		didTable = $("#didTable").DataTable();
 		
 
 

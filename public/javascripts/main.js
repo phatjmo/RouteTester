@@ -4,6 +4,7 @@
 $.ajaxSetup({ cache: false });
 var statTimer = "";
 var jsonChannels = [];
+var didTable
 
 function sendCalls(){
 
@@ -123,6 +124,8 @@ function didList(hub){
   dispChannels.html("<table id='dids'></table>");
   dids = $("#dids");
   dids.append($("<tr/>").append($("<th />").text("DID")));
+  //didTable.ajax.url( '/didList?hub='+hub ).load();
+
   $.ajax({
       type: "GET",
       url: "/didList",
@@ -130,7 +133,7 @@ function didList(hub){
   })
     .done(function( results ) {
       console.log( "Results: " + results );
-
+      
       $.each(results, function() {
       console.log(this);
       if (this.ITEM) {

@@ -37,6 +37,7 @@ app.configure('production', function(){
 
 app.get('/', routes.index);
 app.get('/didchecker', routes.didchecker);
+app.get('/leadMill', routes.leadMill);
 //app.post('/call', routes.call);
 app.get('/test',routes.test);
 app.post('/sendCalls',routes.sendCalls);
