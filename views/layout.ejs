@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html>
   <head>
     <title><%= title %></title>
@@ -12,5 +11,33 @@
   </head>
   <body>
     <%- body %>
+  <div id="dialog" title="Processing Request">
+    <div id="progressbar"><div class="progress-label">Loading...</div></div>
+  </div>
+ <script>
+   $('document').ready(function(){ 
+      progressbar = $( "#progressbar" );
+      progressLabel = $( ".progress-label" );
+      dialog = $( "#dialog" ).dialog({
+        autoOpen: false,
+        closeOnEscape: false,
+        resizable: false,
+        width: 500,
+        height: 100,
+        show: { effect: "blind", duration: 200 }
+      });
+
+      progressbar.progressbar({
+      value: false,
+      change: function() {
+        progressLabel.text( progressbar.progressbar( "value" ) + "%" );
+      },
+      complete: function() {
+        progressLabel.text( "Complete!" );
+        doDialog("close");
+      }
+    });
+  });
+</script>
   </body>
 </html>

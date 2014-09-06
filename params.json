@@ -1,7 +1,30 @@
 {
-   "cps": 5,
-   "asthost": "localhost",
-   "astuser": "nodejs",
-   "astpass": "nodejs"
-  	
+
+"loglevel": "silly",
+"homepage": "didchecker",
+"dialer": {
+ 	"cps": 5
+   		},
+ "asterisk": {
+    "server": "127.0.0.1",
+    "port": 8088,
+    "manager": "nodejs",
+    "secret": "nodejs",
+    "ajam": "/mxml",
+    "obcontext": "outbound",
+    "ibcontext": "inbound"
+   	},
+ "database": {
+  	"mysql": {
+ 		"host": "localhost",
+  		"user": "didchecker",
+  		"password": "didchecker",
+    	"database": "didchecker"
+  	},
+  	"oracle": {
+	   	"tns": "(DESCRIPTION =(ADDRESS_LIST =(ADDRESS = (PROTOCOL = TCP)(HOST = lva1doradev90.cvdsxiegyd4k.us-east-1.rds.amazonaws.com)(PORT = 1521)))(CONNECT_DATA =(SID = LEGACYDB)))",
+  	   	"user": "apricot",
+    	"password": "apri-cot"
+  		}
+ }
 }

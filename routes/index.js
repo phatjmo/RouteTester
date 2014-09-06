@@ -2,101 +2,31 @@
 /*
  * GET home page.
  */
-var telephony = require('../telephony');
-var database = require('../database.json');
+var t = require('../telephony');
+//var database = require('../database.json');
 var params = require('../params.json');
+var logger = require('../utils/logger.js');
+var db = require('../utils/db.js');
+var num = require('../utils/numbers.js');
 //var pauseable = require('pauseable')
 //  , EventEmitter = require('events').EventEmitter;
 //var call = [];
 //var ee = new EventEmitter();
-
-var interval = 1000/params.cps
-console.log(interval);
-console.log(params);
-var call = "inactive";
+var database = params.database;
+var interval = 1000/params.dialer.cps
+//logger.log('silly',interval);
+//logger.log('silly',params);
+//var call = "inactive";
 //var sleep = require('teddybear');
-//console.log(JSON.parse(database));
-//console.log(database);
-var t = telephony.Shift8;
+//logger.log('silly',JSON.parse(database));
+//logger.log('silly',database);
+//var t = telephony.Shift8;
 
-if (database.mysql) {
-  var mysql = require('mysql');
-  /* var connection = mysql.createConnection({
-    host     : 'localhost',
-    user     : 'leadmill',
-    password : 'leadmill'
-  }); */
-
-  var connection = mysql.createConnection({
-    host     : database.mysql.host,
-    user     : database.mysql.user,
-    password : database.mysql.password,
-    database : database.mysql.database
-  });
-}
-if (database.oracle) {
-
-  var oracle = require('oracle');
-
-  //var connString = "(DESCRIPTION =(ADDRESS_LIST =(ADDRESS = (PROTOCOL = TCP)(HOST = lva1doradev90.cvdsxiegyd4k.us-east-1.rds.amazonaws.com)(PORT = 1521)))(CONNECT_DATA =(SID = LEGACYDB)))";
-  var connectData = {
-      "tns": database.oracle.tns,
-      "user": database.oracle.user,
-      "password": database.oracle.password
-  }; 
-
-
-/* var connectData = {
-    hostname: "lva1doradev90.cvdsxiegyd4k.us-east-1.rds.amazonaws.com",
-    port: 1521,
-    sid: "legacydb", // System ID (SID)
-    user: "apricot",
-    password: "apri-cot"
-}; */ 
-
-  oracle.connect(connectData, function(err, connection) {
-      if (err) { console.log("Error connecting to db:", err); return; }
-      connection.execute("SELECT systimestamp FROM dual", [], function(err, results) {
-          if (err) { console.log("Error executing query:", err); return; }
-
-          console.log(results);
-          connection.close(); // call only when query is finished executing
-      });
-
-  });
-}
-/*oracle.connect(connectData, function(err, connection) {
-    if (err) { console.log("Error connecting to db:", err); return; }
-    hubQuery = 'select h.HUB_NAME as hub, count(*) as dids from did d inner join hub h on h.hub_id=d.hub_id group by h.hub_name';
-    connection.execute(hubQuery, [], function(err, results) {
-        if (err) { console.log("Error executing query:", err); return; }
-
-        console.log(results);
-        connection.close(); // call only when query is finished executing
-    });
-    
-});*/
-console.log("Timeout Test Begins!");
-setTimeout(function(){
-  console.log("Timeout test: " + (5*interval)+ "ms delay!");
-
-},5*interval);
-
-function query(query){
-
-  connection.query(query, function(err, rows, fields) {
-    if (err) {
-      throw err;
-      return -1;
-    } else {
-
-      console.log('Query successful: ', rows[0]);
-      return rows;
-
-    }
-  });
-
-}
+db.query("show tables","MySQL", function(err, rows){
+    logger.log('silly',"Inside CB");
+    if (err) {logger.error('silly','Query %s',err)};
+    if (rows) {logger.log('silly','%d Row()s returned.',rows.length)};
+});
 
 function genCalls(element, index, array) {
     var phone = "";
@@ -107,166 +37,61 @@ function genCalls(element, index, array) {
     var rangeCount = 0;
     var delay = 0;
 
-    console.log("a[" + index + "] = " + element);
-    console.log(element.rangefrom);
-    console.log(element.rangeto);
+    logger.log('silly',"a[" + index + "] = " + element);
+    logger.log('silly',element.rangefrom);
+    logger.log('silly',element.rangeto);
     ac = element.ac;
     rangeTo = element.rangeto;
     rangeFrom = element.rangefrom;
     rangeCount = (rangeTo-rangeFrom)+1;
-    console.log("Processing " +ac+ " " + rangeFrom + " to " +ac+ " " + rangeTo + " for a total of " + rangeCount + " calls. Dialing at " + params.cps + " calls per second.");
+    logger.log('silly',"Processing " +ac+ " " + rangeFrom + " to " +ac+ " " + rangeTo + " for a total of " + rangeCount + " calls. Dialing at " + params.cps + " calls per second.");
     for (i=0; i < rangeCount; i++) {
       phone = rangeFrom + i;
       dialString = ac.toString() + phone.toString();
       ani = '04'+phone.toString();
-      //console.log(dialString + ": processing call " + (i+1));
+      //logger.log('silly',dialString + ": processing call " + (i+1));
       //sleep(500);
       delay = i*interval;
-      console.log(dialString + ": processing call " + (i+1) + " timeout: " + delay + ", i: " + i +", interval: " + interval);
-/*      setTimeout(function(){
-        makeCall(dialString, ani);
-      }
-      ,delay);*/
-      console.log("makeCall('"+dialString+"','"+ani+"')");
-      setTimeout(makeCall, delay, dialString, ani);
+      logger.log('silly',dialString + ": processing call " + (i+1) + " timeout: " + delay + ", i: " + i +", interval: " + interval);
+      logger.log('silly',"makeCall('"+dialString+"','"+ani+"')");
+      setTimeout(t.makeCall, delay, dialString, ani);
       
     }
 
 }
 
-function makeCall(did, ani){
-  call = "active";
-  did = did;
-  console.log("Calling " + did + " from " + ani);
-  channel = "local/"+did;
-  context = "dummy-exten";
-  exten =  "100";
-  priority = 1;
-  if(ani){
-    callerID = '"Autodialer"<'+ani+'>';
-  } else {
-    callerID = '"Autodialer"<6026067001>';  
-  }
-  
-  async = 1;
-  application = null;
-  data=null;
-  timeout=null;
-  variable = null;
-  account=null;
-  codecs=null;
-
-  t.originate(channel, context, exten, priority, application, data, timeout, callerID, variable, account, async, codecs, function(error, response){ 
-    if(error){ 
-      console.log(error);
-      //callback(error);
-    } else {
-      //console.log(response);
-      //console.log(dialString + ": processing call: " + response.response +" - " + response.message);
-      //callback(response);
-    }
-    
-   });
-  //console.log("GET:makeCall");
-
-}
-
-t.on('event', function( event ) {
-        //console.log("Event");
-        if (event.event=="Dial" && event.subevent=="Begin"){
-          //console.log(event);
-          ani = event.calleridnum;
-          did = event.dialstring.split("/")[1];
-          uniqueid = event.uniqueid;
-          destuniqueid = event.destuniqueid;
-          channel = event.destination;
-          theQuery = "INSERT INTO calldetail (uniqueid, did, ani, callstart, astChannel) VALUES ('" + destuniqueid + "','" + did + "','" + ani + "',now(),'" + channel + "')";
-          //console.log(theQuery);
-          connection.query(theQuery,function(err, res){
-            if(err){console.log(err);}
-            if(res){
-              //console.log(res);
-            }
-          })
-        
-        }
-        if(event.event=="VarSet"){
-          switch (event.variable) { 
-            case "SIPcause":
-              //console.log(event);
-              break;
-            case "SIPcode":
-              //console.log(event);
-              break;
-            case "SIPmsg":
-              //console.log(event);
-              break;
-            otherwise:
-              break;
-          }
-          
-        }
-         if(event.event=="Trying"||event.event=="Progressing"){
-          //console.log(event);
-          if(event.event=="Progressing" && event.userdata!='(null)'){
-            console.log("Dropping before answer...");
-            t.hangup(event.channelname);
-            call="inactive";
-          }
-        }
-        
-});
-
 exports.index = function(req, res){
-  res.render('didchecker', { title: 'Asterisk Dialer' })
-  console.log("GET:INDEX");
+  res.render(params.homepage, { title: 'Asterisk Dialer' })
+  logger.log('silly',"GET:INDEX");
 };
 
 exports.didchecker = function(req, res){
   res.render('didchecker', { title: 'DID Checker' })
-  console.log("GET:DIDCHECKER");
+  logger.log('silly',"GET:DIDCHECKER");
 };
 
 exports.leadMill = function(req, res){
   res.render('index', { title: 'Asterisk Dialer' })
-  console.log("GET:LEADMILL");
+  logger.log('silly',"GET:LEADMILL");
 };
 
 exports.test = function(req, res){
   //res.render('index', { title: 'Express' })
-  console.log("GET:TEST");
+  logger.log('silly',"GET:TEST");
   res.send("GET:TEST - SUCCESS!!!");
-};
-
-exports.sendCalls = function(req, res){
-	console.log("SENDCALLS")
-	console.log(req.body);
-  	var ANIBlock = req.body.ANIBlock
-	, numCalls = req.param('NumCalls')
-	, destination = req.param('Destination')
-	, extension = req.param('Extension')
-	, DTMF = req.param('DTMF')
-	, DTMFDelay = req.param('DTMFDelay')
-	, interval = req.param('Interval');
-  
-  res.json(req.body);
-  
-  //t.originate(channel, context, exten, priority, application, data, timeout, callerID, variable, account, async, codecs, function(error, response){  });
-
-  console.log("GET:CALL")
-
 };
 
 exports.callDID = function(req, res) {
 
   //if(req.query){did = req.query.did;} else { did = req.param('did')}
   did = req.param('did');
-  console.log(did);
+  logger.log('silly',did);
   channel = "local/"+did;
   context = "dummy-exten";
   exten =  "100";
   priority = 1;
-  callerID = '"Autodialer"<6026067001>';
+  ani = "6026067001";
+  callerID = '"Autodialer"<'+ani+'>';
   async = 1;
   application = null;
   data=null;
@@ -275,87 +100,87 @@ exports.callDID = function(req, res) {
   account=null;
   codecs=null;
 
-  t.originate(channel, context, exten, priority, application, data, timeout, callerID, variable, account, async, codecs, function(error, response){ 
+  t.makeCall(did, ani, function(err, response){
+    if (err) {
+      logger.error(err);
+      res.send(err);
+    } else {
+      logger.log('silly',response);
+      res.send(response);
+    }
+  })
+/*  t.originate(channel, context, exten, priority, application, data, timeout, callerID, variable, account, async, codecs, function(error, response){ 
     if(error){ 
-      //console.log(error);
+      //logger.log('silly',error);
       res.send(error);
     } else {
-      //console.log(response);
+      //logger.log('silly',response);
       res.send(response);
     }
     
-   });
-  console.log("GET:CALLDID");
+   });*/
+  logger.log('silly',"GET:CALLDID");
 };
 
 exports.listCommands = function(req, res){
  
   t.listCommands(function(error, response) {
-    console.log(response);
+    logger.log('silly',response);
     res.json(response);
   });
-  console.log("GET:LISTCOMMANDS");
+  logger.log('silly',"GET:LISTCOMMANDS");
 
 };
 
 exports.listChannels = function(req, res){
  
-  t.getActiveChannels(function(error, response) {
-    console.log(response);
+  t.listChannels(function(error, response) {
+    logger.log('silly',response);
     res.json(response);
   });
-  console.log("GET:LISTCHANNELS");
+  logger.log('silly',"GET:LISTCHANNELS");
 
 };
 
-exports.areaList = function(req, res){
-  
-  response = [{"state": "NSW",
-              "cca" : "CANBERRA",
-               "numbers": 30000}]; 
-  res.json(response);
-  console.log("GET:areaList");
-
-};
 exports.stateList = function(req, res){
   
   //response = [{"item": "NSW","count": 30000}];
   theQuery = 'SELECT state as item, sum((rangeTo-rangeFrom)+1) as count FROM LeadMill.areas GROUP BY state';
   
-
-  connection.query(theQuery, function(err, rows, fields){
-    console.log(rows);
-    if(rows){
-      res.json(rows);
-    } else {
+  db.query(theQuery,"MySQL",function(err,rows){
+    if(err){
+      logger.log('silly',err);
       res.json([{"item": "ERR","count":0}]);
+    } else if(rows){
+      logger.log('silly','%d row(s) returned.',rows.length);
+      res.json(rows);
     }
-
-
   });
   
-  console.log("GET:stateList");
+  logger.log('silly',"GET:stateList");
 
 };
 exports.cityList = function(req, res){
-  console.log(req.body);
-  console.log(req.params);
-  console.log(req.query);
+  logger.log('silly',req.body);
+  logger.log('silly',req.params);
+  logger.log('silly',req.query);
   //response = [{"item": "CANBERRA","count": 30000}];
   whereClause = "WHERE state = '" + req.query.state + "'";
   groupClause = "GROUP BY cca"; 
   theQuery = "SELECT cca as item, sum((rangeTo-rangeFrom)+1) as count FROM LeadMill.areas " + whereClause + " " + groupClause;
-  console.log(theQuery);
-  connection.query(theQuery, function(err, rows, fields){
-    console.log(rows);
-    if(rows){
-      res.json(rows);
-    } else {
+  logger.log('silly',theQuery);
+
+  db.query(theQuery,"MySQL",function(err,rows){
+    if(err){
+      logger.log('silly',err);
       res.json([{"item": "ERR","count":0}]);
+    } else if(rows){
+      logger.log('silly','%d row(s) returned.',rows.length);
+      res.json(rows);
     }
-    
   });
-  console.log("GET:cityList");
+
+  logger.log('silly',"GET:cityList");
 
 };
 exports.acList = function(req, res){
@@ -364,16 +189,18 @@ exports.acList = function(req, res){
   whereClause = "WHERE state = '" + req.query.state + "' AND cca = '" + req.query.city + "'";
   groupClause = "GROUP BY ac"; 
   theQuery = "SELECT ac as item, sum((rangeTo-rangeFrom)+1) as count FROM LeadMill.areas " + whereClause + " " + groupClause;
-  connection.query(theQuery, function(err, rows, fields){
-    console.log(rows);
-    if(rows){
-      res.json(rows);
-    } else {
+  
+  db.query(theQuery,"MySQL",function(err,rows){
+    if(err){
+      logger.log('silly',err);
       res.json([{"item": "ERR","count":0}]);
+    } else if(rows){
+      logger.log('silly','%d row(s) returned.',rows.length);
+      res.json(rows);
     }
-
   });
-  console.log("GET:acList");
+
+  logger.log('silly',"GET:acList");
 
 };
 
@@ -383,16 +210,17 @@ exports.rangeList = function(req, res){
   whereClause = "WHERE state = '" + req.query.state + "' AND cca = '" + req.query.city + "'";
   groupClause = "GROUP BY fullrange"; 
   theQuery = "SELECT fullrange as item, sum((rangeTo-rangeFrom)+1) as count FROM LeadMill.areas " + whereClause + " " + groupClause;
-  connection.query(theQuery, function(err, rows, fields){
-    console.log(rows);
-    if(rows){
-      res.json(rows);
-    } else {
+  db.query(theQuery,"MySQL",function(err,rows){
+    if(err){
+      logger.log('silly',err);
       res.json([{"item": "ERR","count":0}]);
+    } else if(rows){
+      logger.log('silly','%d row(s) returned.',rows.length);
+      res.json(rows);
     }
-
   });
-  console.log("GET:rangeList");
+
+  logger.log('silly',"GET:rangeList");
 
 };
 
@@ -403,56 +231,73 @@ exports.hubList = function(req, res){
   whereClause = "WHERE d.status in (0,1)";
   groupClause = "GROUP by h.hub_id, h.hub_name"; 
   theQuery = "select h.hub_id as id, h.HUB_NAME as item, count(*) as count from did d inner join hub h on h.hub_id=d.hub_id " + whereClause + " " + groupClause;
-  
-  oracle.connect(connectData, function(err, connection) {
-    if (err) { console.log("Error connecting to db:", err); return; }
-    //hubQuery = 'select h.HUB_NAME as hub, count(*) as dids from did d inner join hub h on h.hub_id=d.hub_id group by h.hub_name';
-    connection.execute(theQuery, [], function(err, results) {
-        if (err) {
-          console.log("Error executing query:", err);
-          res.json([{"item": "ERR","count":0}]);
-          return;
-        }
-
-        res.json(results);
-        console.log(results);
-        connection.close(); // call only when query is finished executing
-    });
-    
+  db.query(theQuery,"Oracle",function(err,rows){
+    if(err){
+      logger.log('silly',err);
+      res.json([{"item": "ERR","count":0}]);
+    } else if(rows){
+      logger.log('silly','%d row(s) returned.',rows.length);
+      res.json(rows);
+    }
   });
 
-  console.log("GET:hubList");
+  logger.log('silly',"GET:hubList");
 
 };
 
 exports.didList = function(req, res){
   
   //response = [{"item": "07","count": 30000}]; 
-  console.log(req.query);
+  logger.log('silly',req.query);
   whereClause = "WHERE hub_id ='" + req.query.hub + "' AND status in (0,1)";
   groupClause = ""; 
   theQuery = "select did as item from did " + whereClause + " " + groupClause;
-  console.log(theQuery);
-  oracle.connect(connectData, function(err, connection) {
-    if (err) { console.log("Error connecting to db:", err); return; }
-    //hubQuery = 'select h.HUB_NAME as hub, count(*) as dids from did d inner join hub h on h.hub_id=d.hub_id group by h.hub_name';
-    connection.execute(theQuery, [], function(err, results) {
-        if (err) {
-          console.log("Error executing query:", err);
-          res.json([{"item": "ERR","count":0}]);
-          return;
-        }
-
-        res.json(results);
-        console.log(results);
-        connection.close(); // call only when query is finished executing
-    });
-    
+  logger.log('silly',theQuery);
+  
+  db.query(theQuery,"Oracle",function(err,rows){
+    if(err){
+      logger.log('silly',err);
+      res.json([{"item": "ERR","count":0}]);
+    } else if(rows){
+      logger.log('silly','%d row(s) returned.',rows.length);
+      res.json(rows);
+    }
   });
 
-  console.log("GET:didList");
+  logger.log('silly',"GET:didList");
 
 };
+
+exports.callDIDs = function(req, res) {
+    //var did = "";
+    //logger.log("silly",req);
+    var didList = req.param("didList");
+    var ani = "";
+    var delay = 0;
+    var counter = 0;
+    var statuses = [];
+    var response = function(err, res){
+      if (err){
+        logger.error(err);
+      } else {
+        logger.log("silly",res);
+        //res.send(res);
+      }
+    };
+    didList.forEach(function(did) {  
+      ani = '602606'+ num.leftPad(num.randomInt(0,9999),4);
+      //logger.log('silly',dialString + ": processing call " + (i+1));
+      //sleep(500);
+      counter++;
+      delay = counter*interval;
+      logger.log('silly',"makeCall('%s','%s') after %dms",did.ITEM, ani,delay);
+      setTimeout(t.makeCall, delay, did.ITEM, ani, response);
+    });
+    res.send("Complete");
+
+
+ 
+}
 
 
 exports.doRange = function(req, res){
@@ -460,53 +305,56 @@ exports.doRange = function(req, res){
   //response = [{"item": "07","count": 30000}]; 
   whereClause = "WHERE state = '" + req.query.state + "' AND cca = '" + req.query.city + "' AND fullrange = '" + req.query.range + "'";
   theQuery = "SELECT ac, rangefrom, rangeto FROM areas " + whereClause;
-  connection.query(theQuery, function(err, rows, fields){
-    console.log(rows);
-    if(rows){
-      res.json(rows);
-      rows.forEach(genCalls);
-    } else {
+  
+  db.query(theQuery,"MySQL",function(err,rows){
+    if(err){
+      logger.log('silly',err);
       res.json([{"item": "ERR","count":0}]);
+    } else if(rows){
+      logger.log('silly','%d row(s) returned.',rows.length);
+      res.json(rows);
     }
+  });  
 
-  });
-  console.log("GET:doRange");
+  logger.log('silly',"GET:doRange");
 
 };
 
 exports.procCall = function(vars){
-    if(vars.agi_context=='outbound'){
-      console.log("Call Hungup, gathering causes.");
+    if(vars.agi_context==params.asterisk.obcontext){
+      logger.log('silly',"Call Hungup, gathering causes.");
       channel = vars.agi_channel;
       ani = vars.callerid;
       uniqueid = vars.agi_uniqueid;
       SIPcause = vars.agi_arg_1;
       SIPcode = vars.agi_arg_2;
       SIPmsg = vars.agi_arg_3;
-      //console.log("SIP Cause: " + SIPcause);
-      //console.log("SIP Code: " + SIPcode);
-      //console.log("SIP Message: " + SIPmsg);
+      //logger.log('silly',"SIP Cause: " + SIPcause);
+      //logger.log('silly',"SIP Code: " + SIPcode);
+      //logger.log('silly',"SIP Message: " + SIPmsg);
       theQuery ="UPDATE calldetail set sipcause='"+SIPcause+"', sipcode='"+SIPcode+"', sipmsg='"+SIPmsg+"', callend=now() WHERE uniqueid='"+uniqueid+"'";
-      //console.log(theQuery);
-      connection.query(theQuery,function(err, res){
-        if(err){console.log(err);}
-        if(res){
-          //console.log(res);
+      //logger.log('silly',theQuery);
+      db.query(theQuery,"MySQL",function(err,res){
+        if(err){
+          logger.error('silly',err);
+        } else if(res){
+          logger.log('silly',res);
         }
-    })
-      
+      });
     }
-    if(vars.agi_context=='inbound'){
-      console.log("Call hit LeaseHawk system, HOORAY!!!");
+    if(vars.agi_context==params.asterisk.ibcontext){
+      logger.log('silly',"Call hit LeaseHawk system, HOORAY!!!");
       ani = vars.agi_callerid;
       did = vars.agi_extension;
       theQuery ="UPDATE calldetail set received=true WHERE did='"+did+"' AND ani='"+ani+"'";
-      console.log(theQuery);
-      connection.query(theQuery,function(err, res){
-        if(err){console.log(err);}
-        if(res){console.log(res);}
-      })
-
+      logger.log('silly',theQuery);
+      db.query(theQuery,"MySQL",function(err,res){
+        if(err){
+          logger.error('silly',err);
+        } else if(res){
+          logger.log('silly',res);
+        }
+      });
     }
 
 }

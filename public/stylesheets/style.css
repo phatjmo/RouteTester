@@ -9,3 +9,22 @@ body {
 a {
   color: #00B7FF;
 }
+.ui-progressbar {
+    //position: fixed;
+    //margin: 0 auto;
+    //top: 20px;
+    //left: 25%;
+    //display: none;
+    //z-index: 99;
+    width: 100%;
+}
+#progressbar .ui-progressbar-value {
+	background-color: #ccc;
+}
+.progress-label {
+    position: absolute;
+    left: 45%;
+    top: 14px;
+    font-weight: bold;
+    text-shadow: 1px 1px 0 #fff;
+}

@@ -8,8 +8,8 @@ var express = require('express')
   , redis = require("redis")
   , routes = require('./routes');
 
-
-
+var params = require('./params.json');
+var logger = require('./utils/logger.js');
 var app = module.exports = express.createServer();
 
 // Configuration
@@ -44,6 +44,7 @@ app.post('/sendCalls',routes.sendCalls);
 app.get('/sendCalls',routes.sendCalls);
 app.get('/callDID',routes.callDID);
 app.post('/callDID',routes.callDID);
+app.post('/callDIDs',routes.callDIDs);
 app.get('/listCommands',routes.listCommands);
 app.get('/listChannels',routes.listChannels);
 app.get('/areaList',routes.areaList);
@@ -56,63 +57,63 @@ app.get('/didList',routes.didList);
 app.get('/doRange',routes.doRange);
 
 app.listen(3000, function(){
-  console.log("Carrier Simulator is ready and waiting on port %d in %s mode", app.address().port, app.settings.env);
+  logger.log('silly',"Carrier Simulator is ready and waiting on port %d in %s mode", app.address().port, app.settings.env);
 });
 
 require('agi').createServer(function(context) {
   //context is a new instance of agi.Context for each new agi session
   //immedately after asterisk connects to the node process
   context.on('variables', function(vars) {
-    console.log('received new call from: ' + vars.agi_callerid + ' with uniqueid: ' + vars.agi_uniqueid + 'channel: ' + vars.agi_channel);    
+    logger.log('silly','received new call from: ' + vars.agi_callerid + ' with uniqueid: ' + vars.agi_uniqueid + 'channel: ' + vars.agi_channel);    
     routes.procCall(vars);
     if(vars.agi_context=='inbound'){
-      console.log("Inbound");
+      logger.log('silly',"Inbound");
       //context.hangup();
     }
 /*    if(vars.agi_context=='outbound'){
-      console.log("Call Hungup, gathering causes.");
+      logger.log('silly',"Call Hungup, gathering causes.");
       SIPcause = vars.agi_arg_1;
       SIPcode = vars.agi_arg_2;
       SIPmsg = vars.agi_arg_3;
-      console.log("SIP Cause: " + SIPcause);
-      console.log("SIP Code: " + SIPcode);
-      console.log("SIP Message: " + SIPmsg);
+      logger.log('silly',"SIP Cause: " + SIPcause);
+      logger.log('silly',"SIP Code: " + SIPcode);
+      logger.log('silly',"SIP Message: " + SIPmsg);
     }*/
-    //console.log(vars);
+    //logger.log('silly',vars);
 
   });
   /*context.on('response', function(msg){
-    console.log(msg);
+    logger.log('silly',msg);
   });
   context.getVariable('CHANNEL', function(err,res){
-    if(err){console.log(err)}
-    if(res){console.log(res)}
+    if(err){logger.log('silly',err)}
+    if(res){logger.log('silly',res)}
   });
   context.getVariable('CDR(dstchannel)', function(err,res){
-    if(err){console.log(err)}
-    if(res){console.log(res)}
+    if(err){logger.log('silly',err)}
+    if(res){logger.log('silly',res)}
   });  
   context.getVariable('DIALSTATUS', function(err,res){
-    if(err){console.log(err)}
-    if(res){console.log(res)}
+    if(err){logger.log('silly',err)}
+    if(res){logger.log('silly',res)}
   });
   context.getVariable('HANGUPCAUSE', function(err,res){
-    if(err){console.log(err)}
-    if(res){console.log(res)}
+    if(err){logger.log('silly',err)}
+    if(res){logger.log('silly',res)}
   });
     context.getVariable('SIPcode', function(err,res){
-    if(err){console.log(err)}
-    if(res){console.log(res)}
+    if(err){logger.log('silly',err)}
+    if(res){logger.log('silly',res)}
   });  
   context.getVariable('SIPcause', function(err,res){
-    if(err){console.log(err)}
-    if(res){console.log(res)}
+    if(err){logger.log('silly',err)}
+    if(res){logger.log('silly',res)}
   });
   context.getVariable('SIPmsg', function(msg){
-    console.log(msg);
+    logger.log('silly',msg);
   });
   context.on('msg', function(msg){
-    console.log(msg);
+    logger.log('silly',msg);
   });*/
     
   context.end();
