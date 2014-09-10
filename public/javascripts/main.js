@@ -11,15 +11,17 @@ var dialog = [];
 var progressBar = function()
   {
     var xhr = new window.XMLHttpRequest();
-    doDialog("open");
-    progressbar.progressbar("value",false);
+    doSpinner(true);
+    //doDialog("open");
+    //progressbar.progressbar("value",false);
     //Upload progress
+
     xhr.upload.addEventListener("progress", function(evt){
       if (evt.lengthComputable) {
         var percentComplete = evt.loaded / evt.total;
         //Do something with upload progress
         console.log('Upload Progress: %d',percentComplete);
-        progress(percentComplete*100);
+        //progress(percentComplete*100);
       }
     }, false);
     //Download progress
@@ -28,7 +30,7 @@ var progressBar = function()
         var percentComplete = evt.loaded / evt.total;
         //Do something with download progress
         console.log('Download Progress: %d',percentComplete);
-        progress(percentComplete*100);
+        //progress(percentComplete*100);
       }
     }, false);
     xhr.addEventListener("load", function(evt){
@@ -36,8 +38,10 @@ var progressBar = function()
         var percentComplete = evt.loaded / evt.total;
         //Do something with download progress
        console.log('Loaded: %d',percentComplete);
-        progress(percentComplete*100);
+        //progress(percentComplete*100);
         //doDialog("close");
+        doSpinner(false);
+        
       }
     }, false);    
     xhr.addEventListener("error", function(evt){
@@ -45,7 +49,7 @@ var progressBar = function()
         var percentComplete = evt.loaded / evt.total;
         //Do something with download progress
         console.log('Error: %d',percentComplete);
-        progress(100);
+        //progress(100);
       }
     }, false);  
     xhr.addEventListener("abort", function(evt){
@@ -53,7 +57,7 @@ var progressBar = function()
         var percentComplete = evt.loaded / evt.total;
         //Do something with download progress
         console.log('Aborted: %d',percentComplete);
-        progress(100);
+        //progress(100);
       }
     }, false);  
 
@@ -61,11 +65,53 @@ var progressBar = function()
     return xhr;
   }
  
- function doDialog(state){
+function doSpinner(state){
+  var opts = {
+    lines: 13, // The number of lines to draw
+    length: 40, // The length of each line
+    width: 30, // The line thickness
+    radius: 60, // The radius of the inner circle
+    corners: 0.5, // Corner roundness (0..1)
+    rotate: 53, // The rotation offset
+    direction: 1, // 1: clockwise, -1: counterclockwise
+    color: '#fff', // #rgb or #rrggbb or array of colors
+    speed: 1.3, // Rounds per second
+    trail: 100, // Afterglow percentage
+    shadow: true, // Whether to render a shadow
+    hwaccel: false, // Whether to use hardware acceleration
+    className: 'spinner', // The CSS class to assign to the spinner
+    zIndex: 2e9, // The z-index (defaults to 2000000000)
+    top: '50%', // Top position relative to parent
+    left: '50%' // Left position relative to parent
+  };
+  if(state){
+    overlay("overlay",true);
+    $("#spinner").spin(opts);
+  } else {
+    overlay("overlay",false);
+    $("#spinner").spin(false);
+  }
+}
+
+function overlay(element,state){
+  
+  if(state){
+    $("#"+element).css("display", "block");
+    $("#"+element).height($(window).height());
+    $("#"+element).width($(window).width());
+    $("#"+element).fadeTo(1000, 0.4);
+  } else {
+    $("#"+element).fadeTo(1000, 0);
+    $("#"+element).css("display", "none");
+  }
+
+}
+
+function doDialog(state){
     dialog.dialog(state);
  }
 
- function progress(value) {
+function progress(value) {
       console.log(value);
       progressbar.progressbar( "value", value );
  
@@ -194,7 +240,7 @@ function didList(hub){
   dids = $("#dids");
   dids.append($("<tr/>").html('<th>DID</th><th><button onclick="callDIDs(theDIDs); return false;">Call All</button></th><th>Messages</th>'));
   //didTable.ajax.url( '/didList?hub='+hub ).load();
-  progressbar.progressbar({value: false});
+  //progressbar.progressbar({value: false});
   //dialog.dialog("open");
   $.ajax({
       type: "GET",
@@ -229,7 +275,7 @@ function didList(hub){
 function popLists(list){
   var theList = $("#"+list);
   theList.empty();
-  theList.append($("<option/>").val("").text("Pick One!"));
+  theList.append("<option value='' selected='selected'>Pick One!</option>");
 
   switch (list) {
 
@@ -267,7 +313,8 @@ function popLists(list){
   $.ajax({
     url: url,
     data: data,
-    dataType: "json"
+    dataType: "json",
+    xhr: progressBar
     })
   .done(function( result ) {
     //alert(msg);

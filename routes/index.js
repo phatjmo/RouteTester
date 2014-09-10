@@ -320,6 +320,12 @@ exports.doRange = function(req, res){
 
 };
 
+exports.didUpload = function(req, res){
+  logger.log(req.params);
+  logger.log("POST:DIDUPLOAD");
+  res.send("YAY FILE RECEIVED!");
+}
+
 exports.procCall = function(vars){
     if(vars.agi_context==params.asterisk.obcontext){
       logger.log('silly',"Call Hungup, gathering causes.");

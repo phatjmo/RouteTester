@@ -2,42 +2,21 @@
   <head>
     <title><%= title %></title>
     <link rel='stylesheet' href='/stylesheets/style.css' />
-    <link rel='stylesheet' href='/javascripts/jquery/css/ui-darkness/jquery-ui-1.10.4.custom.min.css' />
+    <link rel='stylesheet' href='jquery/jquery-ui.css' />
     <link rel='stylesheet' href='http://cdn.datatables.net/1.10.2/css/jquery.dataTables.min.css' />
-    <script src='/javascripts/jquery/js/jquery-1.10.2.js'></script>
-    <script src='/javascripts/jquery/js/jquery-ui-1.10.4.min.js'></script>
+    <script src='/jquery/external/jquery/jquery.js'></script>
+    <script src='/jquery/jquery-ui.min.js'></script>
+    <script src='/jquery/jquery.liteuploader.min.js'></script>
+    <script src='/javascripts/spin.min.js'></script>
+    <script src='/javascripts/jquery/js/jquery.spin.js'></script>
     <script src='http://cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js'></script>
     <script src='/javascripts/main.js'></script>
+
   </head>
   <body>
     <%- body %>
-  <div id="dialog" title="Processing Request">
-    <div id="progressbar"><div class="progress-label">Loading...</div></div>
-  </div>
- <script>
-   $('document').ready(function(){ 
-      progressbar = $( "#progressbar" );
-      progressLabel = $( ".progress-label" );
-      dialog = $( "#dialog" ).dialog({
-        autoOpen: false,
-        closeOnEscape: false,
-        resizable: false,
-        width: 500,
-        height: 100,
-        show: { effect: "blind", duration: 200 }
-      });
+  <div id="spinner"></div>
+  <div id="overlay"></div>
 
-      progressbar.progressbar({
-      value: false,
-      change: function() {
-        progressLabel.text( progressbar.progressbar( "value" ) + "%" );
-      },
-      complete: function() {
-        progressLabel.text( "Complete!" );
-        doDialog("close");
-      }
-    });
-  });
-</script>
   </body>
 </html>

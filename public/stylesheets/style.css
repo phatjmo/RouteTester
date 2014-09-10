@@ -28,3 +28,26 @@ a {
     font-weight: bold;
     text-shadow: 1px 1px 0 #fff;
 }
+#overlay {
+	position:absolute;
+	top:0;
+	left:0;
+	display:none;
+	//background-color:grey;
+	opacity:0;
+	background: grey url("/javascripts/jquery/css/ui-lightness/images/animated-overlay.gif") 50% 50% repeat;
+}
+.spinner {
+}
+
+fieldset {
+	width:48%;
+	height:615px;
+	float:left;
+	border-radius: 5px 5px 5px 5px;
+}
+
+label {
+    display: block;
+    margin: 20px 0 0 0;
+}

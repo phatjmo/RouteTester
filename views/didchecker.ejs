@@ -1,26 +1,48 @@
 <h1><%= title %></h1>
 <p>Welcome to <%= title %></p>
 <form>
-	<fieldset style="width:25%;height:615px;float:left;">
-		<legend>DID Selection</legend>
-		<ul class="form">
-			<li><label>Choose Hub:</label><select id="hub"></select></li>
-			<li>
+
 				<button id="sendCalls" type="button">Send Calls</button>
 				<button id="didList" type="button">List DIDs</button>
-				<button id="abortCalls" type="button">Abort Test (Hangup Calls)</button>
+				<!-- <button id="abortCalls" type="button">Abort Test (Hangup Calls)</button> -->
 				<button id="listChannels" type="button">List Channels</button>
-			</li>
-		</ul>
-		<ul class="form">
-			<li><label>Manual DID:</label><input id="manDID"></li>
-			<li><button id="callDID" type="button">Call Me</button></li>
-			<li><span id="msgmanDID"></span></li>
-		</ul>
+				<label for="manDID">Manual DID:</label><input id="manDID">
+				<button id="callDID" type="button">Call Me</button>
+				<span id="msgmanDID"></span>
 
-	</fieldset>
-	<fieldset style="width:25%;height:615px;float:left;">
-	<legend>DID Display</legend>
+			<div id="tabs1">
+				<ul>
+					<li><a href="#tabs1-1">By Hub</a></li>
+					<li><a href="#tabs1-2">By Client</a></li>
+					<li><a href="#tabs1-3">By File</a></li>
+				</ul>
+				<div id="tabs1-1">
+					
+						
+						
+						<label for="hub">Choose Hub:</label><select id="hub"><option value='' selected='selected'>Pick One!</option></select>
+						
+					
+				</div>
+				<div id="tabs1-2">
+					
+						
+						<label for="client">Choose Client:</label><select id="client"><option value='' selected='selected'>Pick One!</option></select>
+						
+
+					
+				</div>				
+				<div id="tabs1-3">	
+						
+						
+						<label for="file">Choose File:</label><input type="file" name="fileUpload" id="fileUpload" class="fileUpload"></input>
+						
+
+					
+				</div>
+			</div>
+		<fieldset>
+		<legend>DID Display</legend>
 		<div id="dispDIDs" style="width:100%;height:600px;float:left;overflow:scroll;">
 			<table id="didTable">
 				<thead>
@@ -41,7 +63,7 @@
 
 		</div>
 	</fieldset>
-	<fieldset style="width:25%;height:615px;float:left;">
+	<fieldset>
 	<legend>Channel Display</legend>
 		<div id="dispChannels" style="width:100%;height:600px;float:left;overflow:scroll;">
 		
@@ -49,6 +71,7 @@
 
 		</div>
 	</fieldset>
+
 </form>
 
 <!-- Index page logic -->
@@ -56,11 +79,23 @@
 	//Index Page Logic
 	$('document').ready(function(){
 		$( "button" ).button();
+		//$( "#accordion1" ).accordion();
+		$( "#tabs1" ).tabs();
+		$( "select" ).selectmenu();
+		$( "select" ).selectmenu( {icons: { button: "ui-icon-circle-triangle-s" }, width: 200});
 		$( '#sendCalls' ).click(function(){sendCalls();});
 		$( '#callDID' ).click(function(){makeCall($("#manDID").val());});
 		$( '#didList' ).click(function(){didList($( "#hub").val());});
 		$( '#abortCalls' ).click(function(){abortCalls();});
 		$( '#listChannels' ).click(function(){listChannels();});
+		
+		$('.fileUpload').liteUploader({
+				script: '/didUpload'
+			})
+			.on('lu:success', function (e, response) {
+				alert('Uploaded!');
+			});
+
 		popLists("hub");
 		//alert("page loaded");
 		didData = [

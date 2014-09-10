@@ -55,6 +55,7 @@ app.get('/rangeList',routes.rangeList);
 app.get('/hubList',routes.hubList);
 app.get('/didList',routes.didList);
 app.get('/doRange',routes.doRange);
+app.post('/didUpload',routes.didUpload);
 
 app.listen(3000, function(){
   logger.log('silly',"Carrier Simulator is ready and waiting on port %d in %s mode", app.address().port, app.settings.env);
