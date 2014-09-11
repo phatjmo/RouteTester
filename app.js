@@ -17,7 +17,7 @@ var app = module.exports = express.createServer();
 app.configure(function(){
   app.set('views', __dirname + '/views');
   app.set('view engine', 'ejs');
-  app.use(express.bodyParser());
+  app.use(express.bodyParser({uploadDir:'./public/uploads'}));
   app.use(express.methodOverride());
   app.use(express.cookieParser());
   app.use(express.session({ secret: 'your secret here' }));
@@ -56,6 +56,7 @@ app.get('/hubList',routes.hubList);
 app.get('/didList',routes.didList);
 app.get('/doRange',routes.doRange);
 app.post('/didUpload',routes.didUpload);
+app.post('/hangChan',routes.hangChan);
 
 app.listen(3000, function(){
   logger.log('silly',"Carrier Simulator is ready and waiting on port %d in %s mode", app.address().port, app.settings.env);

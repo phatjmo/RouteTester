@@ -1,19 +1,20 @@
-<h1><%= title %></h1>
-<p>Welcome to <%= title %></p>
-<form>
+<div id="title"><h1><%= title %></h1>
+<p>Welcome to <%= title %></p></div>
 
-				<button id="sendCalls" type="button">Send Calls</button>
-				<button id="didList" type="button">List DIDs</button>
-				<!-- <button id="abortCalls" type="button">Abort Test (Hangup Calls)</button> -->
-				<button id="listChannels" type="button">List Channels</button>
+
+
+				
 				<label for="manDID">Manual DID:</label><input id="manDID">
 				<button id="callDID" type="button">Call Me</button>
+				<button onclick="callDIDs(theDIDs); return false;">Call All</button>
+				<button id="listChannels" type="button">List Channels: OFF</button>
+
 				<span id="msgmanDID"></span>
 
 			<div id="tabs1">
 				<ul>
 					<li><a href="#tabs1-1">By Hub</a></li>
-					<li><a href="#tabs1-2">By Client</a></li>
+					<li><a href="#tabs1-2">By Customer</a></li>
 					<li><a href="#tabs1-3">By File</a></li>
 				</ul>
 				<div id="tabs1-1">
@@ -21,41 +22,48 @@
 						
 						
 						<label for="hub">Choose Hub:</label><select id="hub"><option value='' selected='selected'>Pick One!</option></select>
+						<button id="didListByHub" type="button" style="top:-13px;">List DIDs</button>
+						
 						
 					
 				</div>
 				<div id="tabs1-2">
 					
 						
-						<label for="client">Choose Client:</label><select id="client"><option value='' selected='selected'>Pick One!</option></select>
-						
-
+						<label for="client">Choose Client:</label><select id="client"><option value='' selected='selected'>Pick One!</option></select><label for="client">Choose Customer:</label><select id="customer"><option value='' selected='selected'>Pick One!</option></select>
+						<button id="didListByClient" type="button" style="top:-13px;">List DIDs</button>
+					
 					
 				</div>				
 				<div id="tabs1-3">	
 						
 						
-						<label for="file">Choose File:</label><input type="file" name="fileUpload" id="fileUpload" class="fileUpload"></input>
-						
+						<!-- <label for="file">Choose File:</label><input type="file" name="fileUpload" id="fileUpload" class="fileUpload"></input><button id="sendFile" onclick="uploadDIDs('file')">Upload</button> -->
 
+						<form id="didUpload" enctype="multipart/form-data">
+							<input id="didFile" name="didFile" type="file" accept=".csv" />
+							<button id="upload2">Upload</button>
+						</form>
+						<progress></progress>
 					
 				</div>
 			</div>
 		<fieldset>
 		<legend>DID Display</legend>
-		<div id="dispDIDs" style="width:100%;height:600px;float:left;overflow:scroll;">
+		<div id="dispDIDs">
 			<table id="didTable">
 				<thead>
-					<th>col 1</th>
-					<th>col 2</th>
-					<th>col 3</th>
-					<th>col 4</th>
+					<th>DID</th>
+					<th>Call</th>
+					<th>Messages</th>
+					<th>Received</th>
 				</thead>
 				<tbody>
-<!-- 					<td>data 1</td>
-					<td>data 2</td>
-					<td>data 3</td>
-					<td>data 4</td> -->
+	 				<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					
 				</tbody>
 				<tfoot></tfoot>
 			</table>
@@ -65,36 +73,66 @@
 	</fieldset>
 	<fieldset>
 	<legend>Channel Display</legend>
-		<div id="dispChannels" style="width:100%;height:600px;float:left;overflow:scroll;">
-		
+		<div id="dispChannels">
+			<table id="chanTable">
+				<thead>
+					<th>DID</th>
+					<th>Caller ID</th>
+					<th>Channel</th>
+					<th>Channel State</th>
+					<th>Duration</th>
+					<th>Hangup</th>
+				</thead>
+				<tbody>
+	 				<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+				</tbody>
+				<tfoot></tfoot>
+			</table>
 
 
 		</div>
 	</fieldset>
 
-</form>
 
 <!-- Index page logic -->
 <script type="text/javascript">
 	//Index Page Logic
 	$('document').ready(function(){
 		$( "button" ).button();
+		//$( "input:file" ).button();
 		//$( "#accordion1" ).accordion();
 		$( "#tabs1" ).tabs();
 		$( "select" ).selectmenu();
 		$( "select" ).selectmenu( {icons: { button: "ui-icon-circle-triangle-s" }, width: 200});
 		$( '#sendCalls' ).click(function(){sendCalls();});
 		$( '#callDID' ).click(function(){makeCall($("#manDID").val());});
-		$( '#didList' ).click(function(){didList($( "#hub").val());});
-		$( '#abortCalls' ).click(function(){abortCalls();});
-		$( '#listChannels' ).click(function(){listChannels();});
+		$( '#didListByHub' ).click(function(){didList("hub", $( "#hub" ).val());});
+		$( '#didListByClient' ).click(function(){didList("customer", $( "#customer" ).val());});
+		$( '#listChannels' ).click(function(){
+			//console.log(chanInterval);
+			if(chanInterval){
+				clearInterval(chanInterval);
+				$('#listChannels>.ui-button-text').text("List Channels: OFF");
+				chanInterval = null;
+			} else {
+				chanInterval = setInterval(listChannels,2000);
+				$('#listChannels>.ui-button-text').text("List Channels: ON");
+			}
+
+		});
+		$( '#upload2' ).click(function(){uploadDIDs(); return false;});	
 		
-		$('.fileUpload').liteUploader({
-				script: '/didUpload'
-			})
-			.on('lu:success', function (e, response) {
-				alert('Uploaded!');
-			});
+		// $('.fileUpload').liteUploader({
+		// 		script: '/didUpload'
+		// 	})
+		// 	.on('lu:success', function (e, response) {
+		// 		alert('Uploaded!');
+		// 	});
 
 		popLists("hub");
 		//alert("page loaded");
@@ -116,11 +154,29 @@
 		        "extn":       "8422"
 		    	}
 			]	
-		didTable = $("#didTable").DataTable();
-		
+		didTable = $("#didTable").DataTable({
+			"jQueryUI": true,
+			"sScrollY": "410",
+        	"bScrollCollapse": false
+		});
+		chanTable = $("#chanTable").DataTable({
+			"jQueryUI": true,
+			"sScrollY": "410",
+        	"bScrollCollapse": false
+		});
+		$('#didFile').change(function(){
+		    var file = this.files[0];
+		    var name = file.name;
+		    var size = file.size;
+		    var type = file.type;
+		    console.log("File %s selected with size %d and type %s!",name,size,type);
+		    //Your validation
+		});
+			
 
 
 	});
+
 
 </script>
 

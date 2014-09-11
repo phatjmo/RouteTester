@@ -2,6 +2,25 @@ body {
   padding: 50px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
+fieldset {
+	width:48%;
+	min-height:550px;
+	float:left;
+	border-radius: 5px 5px 5px 5px;
+}
+
+label {
+    display: block;
+    margin: 20px 0 0 0;
+}
+td {
+	text-align: center;
+}
+#title {
+	position:absolute;
+	right: 100px;
+	top: 25px;
+}
 .form {
 	list-style: none;
 	display: inline-block;
@@ -40,14 +59,21 @@ a {
 .spinner {
 }
 
-fieldset {
-	width:48%;
-	height:615px;
-	float:left;
-	border-radius: 5px 5px 5px 5px;
+.ui-icon-notreceived {
+	background-position: -96px -128px;
+	color: red;
 }
 
-label {
-    display: block;
-    margin: 20px 0 0 0;
+.ui-icon-received {
+	background-position: -64px -144px;
+	color: green;
 }
+
+/*.dataTables_scroll {
+	min-height:500px;
+	height:400px;
+}
+.dataTables_scrollBody {
+	min-height:500px;
+	height:400px;
+}*/

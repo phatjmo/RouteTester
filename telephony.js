@@ -130,10 +130,10 @@ exports.makeCall = function(did, ani, cb){
 
   t.originate(channel, context, exten, priority, application, data, timeout, callerID, variable, account, async, codecs, function(error, response){ 
     if(error){ 
-      logger.error(error);
+      logger.error("telephony.js:makeCall(("+ did +","+ ani +") - %s",error);
       cb(error);
     } else {
-      logger.log('silly',response);
+      logger.log('silly',"telephony.js:makeCall("+ did +","+ ani +") - %s",response);
       cb(null,response);
     }
     
@@ -141,5 +141,17 @@ exports.makeCall = function(did, ani, cb){
   //logger.log('silly',"GET:makeCall");
 
 }
+
+exports.hangup = function(channel, cb){
+  t.hangup(channel, function(error, response){
+    if(error){
+      logger.error("telephony.js:hangup("+ channel + ") - %s",error);
+      cb(error);
+    } else {
+      logger.log('silly',"telephony.js:hangup("+ channel + ") - %s",response);
+      cb(null,response);
+    }
+  });
+};
 
 exports.Shift8 = t;

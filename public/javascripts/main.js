@@ -8,6 +8,7 @@ var theDIDs = [];
 var progressbar = [];
 var progressLabel = [];
 var dialog = [];
+var chanInterval = null;
 var progressBar = function()
   {
     var xhr = new window.XMLHttpRequest();
@@ -161,8 +162,8 @@ function makeCall(did){
       type: "POST",
       url: "/callDID",
       data: cmdJSON,
-      async: false,
-      xhr: progressBar
+      async: false
+     
   })
     .done(function( msg ) {
       //alert(msg);
@@ -179,6 +180,28 @@ function makeCall(did){
     //alert("outside ajax");
 
 };
+
+function hangChan(channel) {
+  var cmdJSON = {
+    channel: channel
+  };
+
+  $.ajax({
+      type: "POST",
+      url: "/hangChan",
+      data: cmdJSON,
+      async: false
+     
+  })
+    .done(function( msg ) {
+      //alert(msg);
+      console.log( msg[0].response + ": " + msg[0].message );
+    })
+    .fail(function( jqHR, textStatus ) {
+      console.log( "Failed: " + textStatus );
+    });
+
+}
 
 function abortCalls(){
 
@@ -202,10 +225,11 @@ function listChannels(){
   		type: "GET",
   		url: "/listChannels",
   		data: { name: "John", location: "Boston" },
-      xhr: progressBar
+      //xhr: progressBar
 	})
   	.done(function( msg ) {
     	console.log( msg );
+      fillChanList( msg );
   	})
   	.fail(function( jqHR, textStatus ) {
     	console.log( "Failed: " + textStatus );
@@ -228,41 +252,28 @@ function listCommands(){
   	.fail(function( jqHR, textStatus ) {
     	console.log( "Failed: " + textStatus );
   	});
-
 };
 
-function didList(hub){
-  console.log("didList('"+hub+"')");
-  dispChannels = $("#dispChannels");
+function didList(type, id){
   theDIDs = [];
-  dispChannels.empty();
-  dispChannels.html("<table id='dids'></table>");
-  dids = $("#dids");
-  dids.append($("<tr/>").html('<th>DID</th><th><button onclick="callDIDs(theDIDs); return false;">Call All</button></th><th>Messages</th>'));
   //didTable.ajax.url( '/didList?hub='+hub ).load();
   //progressbar.progressbar({value: false});
   //dialog.dialog("open");
   $.ajax({
       type: "GET",
       url: "/didList",
-      data: { hub: hub },
+      data: { 
+              type: type,
+              id: id
+             },
       xhr: progressBar
 
   })
     .done(function( results ) {
       console.log( "Results: " + results );
       theDIDs = results;
-      $.each(theDIDs, function() {
-      console.log(this);
-      if (this.ITEM) {
-        console.log("Upper Case");
-        text = this.ITEM;
-      } else {
-        text = this.item;
-      }
-      dids.append($("<tr />").html("<td>"+text+'</td><td><button onclick="makeCall('+"'"+text+"'"+'); return false;">Call Me</button></td><td id="msg'+text+'"></td>'));
-    });
-      $("button").button();
+      console.log(results);
+      fillDIDList(theDIDs);
       
 
     })
@@ -271,6 +282,66 @@ function didList(hub){
     });
 
 };
+
+function fillDIDList(list){
+  //console.log("FillDIDList");
+  //console.log(list);
+  counter = 0
+  didTable.clear();
+  $.each(list, function() {
+    //if(counter<100){
+    //console.log(this);
+    if (this.ITEM) {
+      //console.log("Upper Case");
+      text = this.ITEM;
+    } else {
+      text = this.item;
+    }
+    callButton = '<button onclick="makeCall('+"'"+text+"'"+'); return false;">Call Me</button>';
+    msgSpan = '<span id="msg' + text + '"></span>';
+    iconSpan = '<img id="icon' + text + '" src="images/select.png" style="display:none; height:50%;">';
+    //dids.append($("<tr />").html("<td>"+text+'</td><td>'+callButton+'</td><td>'+msgSpan+'</td>'));
+   
+    didRow = {
+      "0": text,
+      "1": callButton,
+      "2": msgSpan,
+      "3": iconSpan
+    };
+    //console.log(didRow);
+    didTable.row.add(didRow).draw();
+    //}    
+    counter++;
+  });
+  //$("button").button();
+}
+
+function fillChanList(list){
+  //console.log("FillChanList");
+  //console.log(list);
+  counter = 0
+  chanTable.clear().draw();
+  $.each(list, function() {
+    if(this.event && this.channel){
+      if(this.context == "default" && this.application != ""){
+        //console.log(this);
+        hangButton = '<button onclick="hangChan('+"'"+this.channel+"'"+'); return false;">Hangup</button>';
+        chanRow = {
+          "0": this.extension,
+          "1": this.calleridnum,
+          "2": this.channel,
+          "3": this.channelstatedesc,
+          "4": this.duration,
+          "5": hangButton
+        };
+        //console.log(chanRow);
+        chanTable.row.add(chanRow).draw();
+        counter++;
+      }
+    }
+  });
+  //$("button").button();
+}
 
 function popLists(list){
   var theList = $("#"+list);
@@ -368,7 +439,7 @@ function doRange(){
 };
 
 function callDIDs(list){
-
+  console.log(list);
   var cmdJSON = {
     didList: list    
   };
@@ -387,3 +458,50 @@ function callDIDs(list){
     });
 
 };
+
+function uploadDIDs(){
+  theDIDs = [];
+  //adata = new FormData($("form")[0]);
+  data = new FormData($("#didUpload")[0]);
+  //console.log(adata);
+  console.log(data);
+  $.ajax({
+      url: '/didUpload',  //Server script to process data
+      type: 'POST',
+      xhr: progressBar,
+      //Ajax events
+      //beforeSend: beforeSendHandler,
+      //success: completeHandler,
+      //error: errorHandler,
+      // Form data
+      data: data,
+      //Options to tell jQuery not to process data or worry about content-type.
+      cache: false,
+      contentType: false,
+      processData: false
+  })
+    .done(function( res ){
+      //console.log( res );
+      theDIDs = res;
+      //console.log(theDIDs);
+      fillDIDList(theDIDs);
+    })
+    .fail(function( jqHR, textStatus ) {
+      console.log( "Failed: " + textStatus );
+    });
+/*  xhr: function() {  // Custom XMLHttpRequest
+          var myXhr = $.ajaxSettings.xhr();
+          if(myXhr.upload){ // Check if upload property exists
+              myXhr.upload.addEventListener('progress',progressHandlingFunction, false); // For handling the progress of the upload
+          }
+          return myXhr;
+      }*/
+
+}
+
+function progressHandlingFunction(e){
+    if(e.lengthComputable){
+      console.log("%d of %d",e.loaded, e.total);
+        $('progress').attr({value:e.loaded,max:e.total});
+    }
+}

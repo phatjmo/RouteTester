@@ -8,6 +8,9 @@ var params = require('../params.json');
 var logger = require('../utils/logger.js');
 var db = require('../utils/db.js');
 var num = require('../utils/numbers.js');
+//Converter Class
+var Converter=require("csvtojson").core.Converter;
+var fs=require("fs");
 //var pauseable = require('pauseable')
 //  , EventEmitter = require('events').EventEmitter;
 //var call = [];
@@ -249,9 +252,20 @@ exports.didList = function(req, res){
   
   //response = [{"item": "07","count": 30000}]; 
   logger.log('silly',req.query);
-  whereClause = "WHERE hub_id ='" + req.query.hub + "' AND status in (0,1)";
-  groupClause = ""; 
-  theQuery = "select did as item from did " + whereClause + " " + groupClause;
+  
+  switch (req.query.type) {
+    case "hub":
+      whereClause = "WHERE hub_id ='" + req.query.id + "' AND status in (0,1)";
+      break;
+    case "customer":
+      whereClause = "WHERE customer_id ='" + req.query.id + "' AND status in (0,1)";
+      break;
+    default:
+      whereClause = "WHERE status in (0,1)";
+  }
+      groupClause = ""; 
+      theQuery = "select did as item from did " + whereClause + " " + groupClause;
+
   logger.log('silly',theQuery);
   
   db.query(theQuery,"Oracle",function(err,rows){
@@ -272,6 +286,7 @@ exports.callDIDs = function(req, res) {
     //var did = "";
     //logger.log("silly",req);
     var didList = req.param("didList");
+    logger.log("silly",didList);
     var ani = "";
     var delay = 0;
     var counter = 0;
@@ -285,18 +300,38 @@ exports.callDIDs = function(req, res) {
       }
     };
     didList.forEach(function(did) {  
+      if(did.ITEM){
+        extension = did.ITEM;
+      } else {
+        extension = did.item;
+      }
       ani = '602606'+ num.leftPad(num.randomInt(0,9999),4);
       //logger.log('silly',dialString + ": processing call " + (i+1));
       //sleep(500);
       counter++;
       delay = counter*interval;
-      logger.log('silly',"makeCall('%s','%s') after %dms",did.ITEM, ani,delay);
-      setTimeout(t.makeCall, delay, did.ITEM, ani, response);
+      logger.log('silly',"makeCall('%s','%s') after %dms",extension, ani, delay);
+      setTimeout(t.makeCall, delay, extension, ani, response);
     });
     res.send("Complete");
 
 
  
+}
+
+exports.hangChan = function(req, res){
+  channel = req.body.channel;
+  t.hangup(channel, function(error, response){
+    if(error){
+      //logger.error(error);
+      res.send(error);
+    } else {
+      //logger.log("silly",response);
+      res.send(response);
+    }
+
+  })
+
 }
 
 
@@ -321,9 +356,31 @@ exports.doRange = function(req, res){
 };
 
 exports.didUpload = function(req, res){
-  logger.log(req.params);
-  logger.log("POST:DIDUPLOAD");
-  res.send("YAY FILE RECEIVED!");
+  file = req.files.didFile;
+  body = req.body
+  logger.log("silly",file);
+  //logger.log("silly",body);
+  logger.log("silly","File %s uploaded, and it's %d bytes. This is a %s file.",file.name,file.size,file.type);
+
+  var csvFileName=file.path;
+  var fileStream=fs.createReadStream(csvFileName);
+  //new converter instance
+  var param={};
+  var csvConverter=new Converter(param);
+
+  //end_parsed will be emitted once parsing finished
+  csvConverter.on("end_parsed",function(jsonObj){
+     logger.log("silly",jsonObj); //here is your result json object
+     res.json(jsonObj);
+     fs.unlink(csvFileName);
+  });
+
+  //read from file
+  fileStream.pipe(csvConverter);
+
+
+  logger.log("silly","POST:DIDUPLOAD");
+  //res.send("YAY FILE RECEIVED!");
 }
 
 exports.procCall = function(vars){
