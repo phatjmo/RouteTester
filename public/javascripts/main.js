@@ -309,10 +309,11 @@ function fillDIDList(list){
       "3": iconSpan
     };
     //console.log(didRow);
-    didTable.row.add(didRow).draw();
+    didTable.row.add(didRow);
     //}    
     counter++;
   });
+  didTable.draw();
   //$("button").button();
 }
 
@@ -335,11 +336,12 @@ function fillChanList(list){
           "5": hangButton
         };
         //console.log(chanRow);
-        chanTable.row.add(chanRow).draw();
+        chanTable.row.add(chanRow);
         counter++;
       }
     }
   });
+  chanTable.draw();
   //$("button").button();
 }
 
