@@ -1,9 +1,9 @@
 {
 
 "loglevel": "silly",
-"homepage": "didchecker",
+"homepage": "index",
 "dialer": {
- 	"cps": 5
+ 	"cps": 1
    		},
  "asterisk": {
     "server": "127.0.0.1",
@@ -17,14 +17,9 @@
  "database": {
   	"mysql": {
  		"host": "localhost",
-  		"user": "didchecker",
-  		"password": "didchecker",
-    	"database": "didchecker"
-  	},
-  	"oracle": {
-	   	"tns": "(DESCRIPTION =(ADDRESS_LIST =(ADDRESS = (PROTOCOL = TCP)(HOST = lva1doradev90.cvdsxiegyd4k.us-east-1.rds.amazonaws.com)(PORT = 1521)))(CONNECT_DATA =(SID = LEGACYDB)))",
-  	   	"user": "apricot",
-    	"password": "apri-cot"
-  		}
+  		"user": "leadmill",
+  		"password": "leadmill",
+    	"database": "LeadMill"
+  	}
  }
 }

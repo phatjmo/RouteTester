@@ -27,7 +27,7 @@ var interval = 1000/params.dialer.cps
 
 db.query("show tables","MySQL", function(err, rows){
     logger.log('silly',"Inside CB");
-    if (err) {logger.error('silly','Query %s',err)};
+    if (err) {logger.error('Error %s',err)};
     if (rows) {logger.log('silly','%d Row()s returned.',rows.length)};
 });
 
@@ -43,11 +43,20 @@ function genCalls(element, index, array) {
     logger.log('silly',"a[" + index + "] = " + element);
     logger.log('silly',element.rangefrom);
     logger.log('silly',element.rangeto);
-    ac = element.ac;
-    rangeTo = element.rangeto;
-    rangeFrom = element.rangefrom;
+    ac = element[0].ac;
+    rangeTo = element[0].rangeto;
+    rangeFrom = element[0].rangefrom;
     rangeCount = (rangeTo-rangeFrom)+1;
     logger.log('silly',"Processing " +ac+ " " + rangeFrom + " to " +ac+ " " + rangeTo + " for a total of " + rangeCount + " calls. Dialing at " + params.cps + " calls per second.");
+    var response = function(err, res){
+      if (err){
+        logger.error(err);
+      } else {
+        logger.log("silly",res);
+        //res.send(res);
+      }
+    };
+
     for (i=0; i < rangeCount; i++) {
       phone = rangeFrom + i;
       dialString = ac.toString() + phone.toString();
@@ -57,10 +66,47 @@ function genCalls(element, index, array) {
       delay = i*interval;
       logger.log('silly',dialString + ": processing call " + (i+1) + " timeout: " + delay + ", i: " + i +", interval: " + interval);
       logger.log('silly',"makeCall('"+dialString+"','"+ani+"')");
-      setTimeout(t.makeCall, delay, dialString, ani);
+      setTimeout(t.makeCall, delay, dialString, ani, response);
       
     }
 
+}
+
+exports.callRange = function(req, res) {
+    //var did = "";
+    //logger.log("silly",req);
+    var didList = req.param("didList");
+    logger.log("silly",didList);
+    var ani = "";
+    var delay = 0;
+    var counter = 0;
+    var statuses = [];
+    var response = function(err, res){
+      if (err){
+        logger.error(err);
+      } else {
+        logger.log("silly",res);
+        //res.send(res);
+      }
+    };
+    didList.forEach(function(did) {  
+      if(did.ITEM){
+        extension = did.ITEM;
+      } else {
+        extension = did.item;
+      }
+      ani = '602606'+ num.leftPad(num.randomInt(0,9999),4);
+      //logger.log('silly',dialString + ": processing call " + (i+1));
+      //sleep(500);
+      counter++;
+      delay = counter*interval;
+      logger.log('silly',"makeCall('%s','%s') after %dms",extension, ani, delay);
+      setTimeout(t.makeCall, delay, extension, ani, response);
+    });
+    res.send("Complete");
+
+
+ 
 }
 
 exports.index = function(req, res){
@@ -347,6 +393,7 @@ exports.doRange = function(req, res){
       res.json([{"item": "ERR","count":0}]);
     } else if(rows){
       logger.log('silly','%d row(s) returned.',rows.length);
+      genCalls(rows);
       res.json(rows);
     }
   });  

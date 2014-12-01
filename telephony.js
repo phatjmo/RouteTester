@@ -63,9 +63,10 @@ t.on('event', function( event ) {
           }
           
         }
-         if(event.event=="Trying"||event.event=="Progressing"){
-          //logger.log('silly',event);
-          if(event.event=="Progressing" && event.userdata!='(null)'){
+        //logger.log('silly',"Event received: %s",event.event);
+         if(event.event=="Trying"||event.event=="Progressing"||event.event=="Ringing"){
+          logger.log('silly',event);
+          if((event.event=="Progressing" || event.event=="Ringing") && event.userdata!='(null)'){
             logger.log('silly',"Dropping before answer...");
             t.hangup(event.channelname);
             call="inactive";
@@ -134,7 +135,7 @@ exports.makeCall = function(did, ani, cb){
       cb(error);
     } else {
       logger.log('silly',"telephony.js:makeCall("+ did +","+ ani +") - %s",response);
-      cb(null,response);
+      cb(null, response);
     }
     
    });

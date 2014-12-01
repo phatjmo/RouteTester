@@ -1,49 +1,173 @@
-<h1><%= title %></h1>
-<p>Welcome to <%= title %></p>
-<form>
-	<fieldset style="width:45%;height:615px;float:left;">
-		<legend>Number Setup</legend>
-		<ul>
-			<li><label>Choose Area:</label><select id="state" onChange="popLists('city')"></select><select id="city" onChange="popLists('range')" ></select><select id="range" ></select></li>
-			<li><label>Destination:</label><input type="text" id='txtDestination'></li>
-			<li><label>Extension:</label><input type="text" id='txtExtension'></li>
-			<li><label>DTMF for IVR (Optional):</label><input type="text" id='txtDTMF'></li>
-			<li><label>DTMF Delay:</label><input type="text" id='txtDTMFDelay'></li>
-			<li><label>Call Interval (in ms):</label><input type="text" id='txtInterval'></li>
-			<li>
-				<button id="sendCalls" type="button">Send Calls</button>
-				<button id="doRange" type="button">Do Range</button>
-				<button id="abortCalls" type="button">Abort Test (Hangup Calls)</button>
-				<button id="listChannels" type="button">List Channels</button>
-				<button id="listCommands" type="button">List Commands</button>
-			</li>
-		</ul>
-	</fieldset>
-	<fieldset style="width:45%;height:615px;float:left;">
-	<legend>Channel Display</legend>
-		<div id="dispChannels" style="width:100%;height:600px;float:left;overflow:scroll;">
-		
+
+<div id="title"><h1><%= title %></h1>
+<p>Welcome to <%= title %></p></div>
+
+
+
+				
+				<label for="manDID">Manual DID:</label><input id="manDID">
+				<button id="callDID" type="button">Call Me</button>
+				<button onclick="callDIDs(theDIDs); return false;">Call All</button>
+				<button id="listChannels" type="button">List Channels: OFF</button>
+
+				<span id="msgmanDID"></span>
+
+			<div id="tabs1">
+				<ul>
+					<li><a href="#tabs1-1">LeadMill</a></li>
+					<li><a href="#tabs1-2">By Customer</a></li>
+					<li><a href="#tabs1-3">By File</a></li>
+				</ul>
+				<div id="tabs1-1">
+					
+						
+					<ul>
+						<li><label>Choose Area:</label><select id="state" onChange="popLists('city')"></select><select id="city" onChange="popLists('range')" ></select><select id="range" ></select></li>
+						<li><label>Call Interval (in ms):</label><input type="text" id='txtInterval'></li>
+						<li>
+							<button id="doRange" type="button">Do Range</button>
+							<button id="abortCalls" type="button">Abort Test (Hangup Calls)</button>
+						</li>
+					</ul>
+						
+						
+					
+				</div>
+				<div id="tabs1-2">
+					
+						
+						<label for="client">Choose Client:</label><select id="client"><option value='' selected='selected'>Pick One!</option></select><label for="client">Choose Customer:</label><select id="customer"><option value='' selected='selected'>Pick One!</option></select>
+						<button id="didListByClient" type="button" style="top:-13px;">List DIDs</button>
+					
+					
+				</div>				
+				<div id="tabs1-3">	
+						
+						
+						<!-- <label for="file">Choose File:</label><input type="file" name="fileUpload" id="fileUpload" class="fileUpload"></input><button id="sendFile" onclick="uploadDIDs('file')">Upload</button> -->
+
+						<form id="didUpload" enctype="multipart/form-data">
+							<input id="didFile" name="didFile" type="file" accept=".csv" />
+							<button id="upload2">Upload</button>
+						</form>
+						<progress></progress>
+					
+				</div>
+			</div>
+		<fieldset>
+		<legend>DID Display</legend>
+		<div id="dispDIDs">
+			<table id="didTable">
+				<thead>
+					<th>DID</th>
+					<th>Call</th>
+					<th>Messages</th>
+					<th>Received</th>
+				</thead>
+				<tbody>
+	 				<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					
+				</tbody>
+				<tfoot></tfoot>
+			</table>
 
 
 		</div>
 	</fieldset>
-</form>
+	<fieldset>
+	<legend>Channel Display</legend>
+		<div id="dispChannels">
+			<table id="chanTable">
+				<thead>
+					<th>DID</th>
+					<th>Caller ID</th>
+					<th>Channel</th>
+					<th>Channel State</th>
+					<th>Duration</th>
+					<th>Hangup</th>
+				</thead>
+				<tbody>
+	 				<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+				</tbody>
+				<tfoot></tfoot>
+			</table>
+
+
+		</div>
+	</fieldset>
+
 
 <!-- Index page logic -->
 <script type="text/javascript">
 	//Index Page Logic
 	$('document').ready(function(){
+
 		$( "button" ).button();
-		$( '#sendCalls' ).click(function(){sendCalls();});
 		$( '#doRange' ).click(function(){doRange();});
 		$( '#abortCalls' ).click(function(){abortCalls();});
-		$( '#listChannels' ).click(function(){listChannels();});
-		$( '#listCommands' ).click(function(){listCommands();});
-		popLists("state");
+		$( "#tabs1" ).tabs();
+		$( "select" ).selectmenu();
+		$( "select" ).selectmenu( {icons: { button: "ui-icon-circle-triangle-s" }, width: 200});
+		$( '#callDID' ).click(function(){makeCall($("#manDID").val());});
+		$( '#didListByHub' ).click(function(){didList("hub", $( "#hub" ).val());});
+		$( '#didListByClient' ).click(function(){didList("customer", $( "#customer" ).val());});
+		$( '#listChannels' ).click(function(){
+			//console.log(chanInterval);
+			if(chanInterval){
+				clearInterval(chanInterval);
+				$('#listChannels>.ui-button-text').text("List Channels: OFF");
+				chanInterval = null;
+			} else {
+				chanInterval = setInterval(listChannels,2000);
+				$('#listChannels>.ui-button-text').text("List Channels: ON");
+			}
+
+		});
+		$( '#upload2' ).click(function(){uploadDIDs(); return false;});
+		$( '#state' ).on("selectmenuchange",function(){
+			popLists('city');
+		});	
+		$( '#city' ).on("selectmenuchange",function(){
+			popLists('range');
+		});	
 		
+
+		popLists("state");
+		//alert("page loaded");
+
+		didTable = $("#didTable").DataTable({
+			"jQueryUI": true,
+			"sScrollY": "410",
+        	"bScrollCollapse": false
+		});
+		chanTable = $("#chanTable").DataTable({
+			"jQueryUI": true,
+			"sScrollY": "410",
+        	"bScrollCollapse": false
+		});
+		$('#didFile').change(function(){
+		    var file = this.files[0];
+		    var name = file.name;
+		    var size = file.size;
+		    var type = file.type;
+		    console.log("File %s selected with size %d and type %s!",name,size,type);
+		    //Your validation
+		});
+			
 
 
 	});
 
+
 </script>
+
+
 

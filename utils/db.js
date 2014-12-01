@@ -2,8 +2,9 @@ var params = require('../params.json');
 //logger.log('silly',params.database.mysql);
 var database = params.database;
 var logger = require('../utils/logger.js');
-
+logger.log('silly',database);
 if (database.mysql) {
+  logger.log('silly',"MySQL Database Loading...");
   var mysql = require('mysql');
   /* var connection = mysql.createConnection({
     host     : 'localhost',
@@ -20,7 +21,7 @@ if (database.mysql) {
 }
 
 if (database.oracle) {
-
+  logger.log('silly',"Oracle Database Loading...");
   var oracle = require('oracle');
 
   //var connString = "(DESCRIPTION =(ADDRESS_LIST =(ADDRESS = (PROTOCOL = TCP)(HOST = lva1doradev90.cvdsxiegyd4k.us-east-1.rds.amazonaws.com)(PORT = 1521)))(CONNECT_DATA =(SID = LEGACYDB)))";
