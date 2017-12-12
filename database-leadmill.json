@@ -1,9 +1,0 @@
-{
-    "mysql": {
-  		"host": "localhost",
-  		"user": "leadmill",
-  		"password": "leadmill",
-      "database": "LeadMill"
-  	}
-
-}

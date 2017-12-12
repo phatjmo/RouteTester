@@ -1,3 +1,6 @@
+# Configs
+database*.json
+
 # Logs
 logs
 *.log
